@@ -8,6 +8,7 @@ Streamlit runs this file again every time a visitor clicks something. The steps 
   3. draw the top bar, then the page, then the footer
 """
 import logging
+from pathlib import Path
 
 import streamlit as st
 
@@ -21,6 +22,23 @@ st.set_page_config(
 )
 
 logger = logging.getLogger("shopease")
+
+
+def secrets_file_hint():
+    """A plain-English clue about why the secrets were not found."""
+    folder = Path.cwd() / ".streamlit"
+    target = folder / "secrets.toml"
+    cloud = " On Streamlit Community Cloud there is no file: paste the secrets into App settings > Secrets."
+    if target.exists():
+        return f"Streamlit found {target}, but the values inside are empty or incomplete."
+    if not folder.exists():
+        return (f"There is no .streamlit folder in {Path.cwd()}. Run streamlit from the project folder "
+                f"(the one that contains streamlit_app.py).{cloud}")
+    others = sorted(path.name for path in folder.glob("secrets*"))
+    if others:
+        return (f"There is no secrets.toml in {folder}, only: {', '.join(others)}. Rename the file to exactly "
+                f"secrets.toml (Windows can hide a .txt ending).{cloud}")
+    return f"There is no secrets.toml in {folder}.{cloud}"
 
 
 def show_setup_help(problem, hint=None):
@@ -40,7 +58,7 @@ def show_setup_help(problem, hint=None):
 def main():
     missing = config.missing_settings()
     if missing:
-        show_setup_help("These secrets are missing or empty: " + ", ".join(missing), config.secrets_file_hint())
+        show_setup_help("These secrets are missing or empty: " + ", ".join(missing), secrets_file_hint())
         st.stop()
 
     try:
@@ -78,4 +96,3 @@ def main():
 
 
 main()
-
