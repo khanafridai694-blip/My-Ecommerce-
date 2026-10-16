@@ -23,10 +23,12 @@ st.set_page_config(
 logger = logging.getLogger("shopease")
 
 
-def show_setup_help(problem):
+def show_setup_help(problem, hint=None):
     """Shown instead of the store when Firebase is not connected yet."""
     st.title("Connect Firebase to start the store")
     st.error(problem)
+    if hint:
+        st.info(hint)
     st.markdown(
         "1. Copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` and fill it in.\n"
         "2. On Streamlit Community Cloud, paste the same text into **App settings > Secrets**.\n"
@@ -38,7 +40,7 @@ def show_setup_help(problem):
 def main():
     missing = config.missing_settings()
     if missing:
-        show_setup_help("These secrets are missing or empty: " + ", ".join(missing))
+        show_setup_help("These secrets are missing or empty: " + ", ".join(missing), config.secrets_file_hint())
         st.stop()
 
     try:
@@ -76,3 +78,4 @@ def main():
 
 
 main()
+
