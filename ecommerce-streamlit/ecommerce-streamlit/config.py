@@ -4,6 +4,8 @@ Secrets are read from Streamlit secrets:
   - on your computer: the file  .streamlit/secrets.toml
   - on Streamlit Community Cloud: the "Secrets" box in the app settings
 """
+from pathlib import Path
+
 import streamlit as st
 
 # ---------- Store ----------
@@ -86,3 +88,21 @@ def missing_settings():
     if not web_api_key():
         missing.append("firebase_web_api_key")
     return missing
+
+
+def secrets_file_hint():
+    """A plain-English clue about why the secrets were not found (shown on the setup screen)."""
+    folder = Path.cwd() / ".streamlit"
+    target = folder / "secrets.toml"
+    cloud = " On Streamlit Community Cloud there is no file: paste the secrets into App settings > Secrets."
+    if target.exists():
+        return f"Streamlit found {target}, but the values inside are empty or incomplete."
+    if not folder.exists():
+        return (f"There is no .streamlit folder in {Path.cwd()}. Run streamlit from the project folder "
+                f"(the one that contains streamlit_app.py).{cloud}")
+    others = sorted(path.name for path in folder.glob("secrets*"))
+    if others:
+        return (f"There is no secrets.toml in {folder}, only: {', '.join(others)}. Rename the file to exactly "
+                f"secrets.toml (Windows can hide a .txt ending).{cloud}")
+    return f"There is no secrets.toml in {folder}.{cloud}"
+
